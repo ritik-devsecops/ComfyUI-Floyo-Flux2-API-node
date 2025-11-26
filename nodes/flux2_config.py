@@ -25,6 +25,8 @@ class Flux2Config:
         key_from_file = config.get("API", "BFL_API_KEY", fallback=None)
         base_from_env = os.environ.get("BFL_BASE_URL")
         base_from_file = config.get("API", "BFL_BASE_URL", fallback=None)
+        flex_base_from_env = os.environ.get("BFL_FLEX_BASE_URL")
+        flex_base_from_file = config.get("API", "BFL_FLEX_BASE_URL", fallback=None)
 
         if key_from_env:
             self._key = key_from_env
@@ -49,6 +51,18 @@ class Flux2Config:
             self._base_url = default_base
             print(f"BFL_BASE_URL not set; using default {default_base}")
 
+        default_flex_base = "https://api.bfl.ai/v1/flux-2-flex"
+        if flex_base_from_env:
+            self._flex_base_url = flex_base_from_env
+            print(f"BFL_FLEX_BASE_URL loaded from environment: {self._flex_base_url}")
+        elif flex_base_from_file:
+            self._flex_base_url = flex_base_from_file
+            os.environ.setdefault("BFL_FLEX_BASE_URL", self._flex_base_url)
+            print(f"BFL_FLEX_BASE_URL loaded from config.ini: {self._flex_base_url}")
+        else:
+            self._flex_base_url = default_flex_base
+            print(f"BFL_FLEX_BASE_URL not set; using default {default_flex_base}")
+
         if self._key and self._key.strip() == "<your_bfl_api_key_here>":
             print("WARNING: BFL_API_KEY is still the placeholder value. Replace it with a real key from https://api.bfl.ai.")
 
@@ -59,3 +73,7 @@ class Flux2Config:
     def get_base_url(self):
         """Return the configured base URL for FLUX.2 API."""
         return self._base_url
+
+    def get_flex_base_url(self):
+        """Return the configured base URL for FLUX.2 flex API."""
+        return self._flex_base_url
