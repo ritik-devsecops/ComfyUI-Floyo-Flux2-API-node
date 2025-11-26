@@ -1,7 +1,12 @@
+import base64
+import io
 import time
 from typing import Any, Dict, List, Optional
 
+import numpy as np
 import requests
+import torch
+from PIL import Image
 
 from .flux2_config import Flux2Config
 
@@ -120,3 +125,47 @@ def merge_reference_images(main_image: str, additional_images: List[str]) -> Dic
             payload[f"input_image_{idx}"] = image.strip()
 
     return payload
+
+
+def image_tensor_to_base64(image: torch.Tensor, format: str = "PNG") -> str:
+    """
+    Convert a ComfyUI image tensor to a base64-encoded string.
+
+    Accepts tensors in BHWC or HWC with float values in [0,1].
+    """
+    if image is None:
+        raise ValueError("Image tensor is None")
+
+    # Take first image if batch provided
+    if image.ndim == 4:
+        image = image[0]
+
+    if image.ndim != 3:
+        raise ValueError(f"Expected image tensor with 3 dimensions (HWC), got shape {tuple(image.shape)}")
+
+    # Move to CPU and convert to numpy
+    if hasattr(image, "detach"):
+        image = image.detach()
+    if hasattr(image, "cpu"):
+        image = image.cpu()
+
+    np_image = image.numpy()
+    np_image = np.clip(np_image, 0.0, 1.0)
+    np_image = (np_image * 255).astype(np.uint8)
+
+    # Handle grayscale or missing channel dimension
+    if np_image.ndim == 2:
+        np_image = np.stack([np_image] * 3, axis=-1)
+    if np_image.shape[-1] == 1:
+        np_image = np.repeat(np_image, 3, axis=-1)
+
+    pil_image = Image.fromarray(np_image)
+    buffer = io.BytesIO()
+
+    save_params: Dict[str, Any] = {}
+    if format.upper() == "JPEG":
+        save_params["quality"] = 95
+
+    pil_image.save(buffer, format=format.upper(), **save_params)
+    encoded = base64.b64encode(buffer.getvalue()).decode("utf-8")
+    return encoded

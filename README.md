@@ -39,14 +39,15 @@ Repo layout (mirrors Floyo Seed API style):
 - **Output:** `image_url` (STRING, signed URL valid for ~10 minutes)
 
 ### FLUX.2 [pro] Image Edit (`Flux2ProImageEdit`)
-- **Inputs (required):** `prompt`, `input_image` (URL)
-- **Inputs (optional):** `input_image_2` … `input_image_8` (extra refs, keep total <= 8), `width`, `height` (0 = match input), `seed` (`-1` = random), `safety_tolerance`, `output_format`
+- **Inputs (required):** `prompt`, `input_image` (IMAGE tensor) or `input_image_url` (URL). If both are set, URL wins.
+- **Inputs (optional):** `input_image_2` … `input_image_8` (IMAGE tensors) and matching `input_image_2_url` … `input_image_8_url`. URLs win over tensors. Keep total refs <= 8. `width`, `height` (0 = match input), `seed` (`-1` = random), `safety_tolerance`, `output_format`
 - **Output:** `image_url` (STRING, signed URL valid for ~10 minutes)
 
 ## Usage Notes
 - The returned URL expires quickly; run your Floyo download/output node immediately after this node.
 - API statuses handled: `Ready`, `Pending`, and error/moderation states. Failures return an error string in the node output.
 - Keep total reference images within FLUX.2 [pro] limits (max 8 images, 9MP total). Width/height must be multiples of 16; `0` uses the input image dimensions for edits. Max resolution 4MP (e.g., 2048x2048).
+- When connecting ComfyUI image tensors, the node auto-converts to base64. If you prefer URLs, fill the URL fields instead.
 
 ## API Reference
 - Endpoint: `https://api.bfl.ai/v1/flux-2-pro`

@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from .flux2_utils import Flux2API, merge_reference_images
+from .flux2_utils import Flux2API, image_tensor_to_base64, merge_reference_images
 
 
 def _validate_resolution(width: int, height: int) -> Optional[str]:
@@ -85,18 +85,26 @@ class Flux2ProImageEdit:
 
     @classmethod
     def INPUT_TYPES(cls):
-        optional_refs = {
-            f"input_image_{idx}": (
-                "STRING",
-                {"default": "", "tooltip": f"Optional reference image URL #{idx} (max 7 extras, total refs <= 8)."},
-            )
-            for idx in range(2, 9)
+        base_image_inputs = {
+            "input_image": ("IMAGE", {"tooltip": "Base image tensor (connect from Load Image). Leave empty if using URL."}),
+            "input_image_url": ("STRING", {"default": "", "tooltip": "Base image URL (used if provided)."}),
         }
+
+        optional_refs = {}
+        for idx in range(2, 9):
+            optional_refs[f"input_image_{idx}"] = (
+                "IMAGE",
+                {"tooltip": f"Optional reference image tensor #{idx}. Leave empty if using URL fields."},
+            )
+            optional_refs[f"input_image_{idx}_url"] = (
+                "STRING",
+                {"default": "", "tooltip": f"Optional reference image URL #{idx}."},
+            )
 
         return {
             "required": {
                 "prompt": ("STRING", {"multiline": True, "default": "", "tooltip": "Describe the edit you want (what to change/keep)."}),
-                "input_image": ("STRING", {"default": "", "tooltip": "Base image URL to edit. Required."}),
+                **base_image_inputs,
             },
             "optional": {
                 **optional_refs,
@@ -116,14 +124,22 @@ class Flux2ProImageEdit:
     def edit(
         self,
         prompt: str,
-        input_image: str,
-        input_image_2: str = "",
-        input_image_3: str = "",
-        input_image_4: str = "",
-        input_image_5: str = "",
-        input_image_6: str = "",
-        input_image_7: str = "",
-        input_image_8: str = "",
+        input_image,
+        input_image_url: str = "",
+        input_image_2=None,
+        input_image_2_url: str = "",
+        input_image_3=None,
+        input_image_3_url: str = "",
+        input_image_4=None,
+        input_image_4_url: str = "",
+        input_image_5=None,
+        input_image_5_url: str = "",
+        input_image_6=None,
+        input_image_6_url: str = "",
+        input_image_7=None,
+        input_image_7_url: str = "",
+        input_image_8=None,
+        input_image_8_url: str = "",
         width: int = 0,
         height: int = 0,
         seed: int = -1,
@@ -135,20 +151,37 @@ class Flux2ProImageEdit:
             if resolution_error:
                 return (f"Error: {resolution_error}",)
 
-            additional_images: List[str] = [
-                input_image_2,
-                input_image_3,
-                input_image_4,
-                input_image_5,
-                input_image_6,
-                input_image_7,
-                input_image_8,
+            def resolve_image(source_tensor, source_url: str) -> Optional[str]:
+                if source_url and source_url.strip():
+                    return source_url.strip()
+                if source_tensor is not None:
+                    try:
+                        return image_tensor_to_base64(source_tensor, format="PNG")
+                    except Exception as exc:
+                        print(f"Warning: failed to convert image tensor to base64: {exc}")
+                        return None
+                return None
+
+            base_image_value = resolve_image(input_image, input_image_url)
+            if not base_image_value:
+                return ("Error: Provide a base image tensor or URL.",)
+
+            additional_images: List[str] = []
+            ref_pairs = [
+                (input_image_2, input_image_2_url),
+                (input_image_3, input_image_3_url),
+                (input_image_4, input_image_4_url),
+                (input_image_5, input_image_5_url),
+                (input_image_6, input_image_6_url),
+                (input_image_7, input_image_7_url),
+                (input_image_8, input_image_8_url),
             ]
 
-            reference_payload = merge_reference_images(input_image, additional_images)
+            for tensor_val, url_val in ref_pairs:
+                resolved = resolve_image(tensor_val, url_val)
+                additional_images.append(resolved if resolved else "")
 
-            if not reference_payload.get("input_image"):
-                return ("Error: input_image URL is required for image editing.",)
+            reference_payload = merge_reference_images(base_image_value, additional_images)
 
             payload = {
                 "prompt": prompt,
