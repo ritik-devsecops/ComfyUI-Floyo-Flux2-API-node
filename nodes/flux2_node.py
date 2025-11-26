@@ -7,6 +7,7 @@ from .flux2_utils import (
     merge_reference_images,
 )
 from .flux2_utils import _blank_image_tensor as _blank_image
+from .flux2_config import Flux2Config
 
 
 def _validate_resolution(width: int, height: int) -> Optional[str]:
@@ -62,7 +63,7 @@ class Flux2ProTextToImage:
             if resolution_error:
                 return (f"Error: {resolution_error}",)
 
-            client = Flux2API()
+            client = Flux2API(base_url=Flux2Config().get_base_url())
             payload = {
                 "prompt": prompt,
                 "width": width if width > 0 else None,
@@ -183,7 +184,7 @@ class Flux2ProImageEdit:
                 "output_format": output_format,
             }
 
-            client = Flux2API()
+            client = Flux2API(base_url=Flux2Config().get_base_url())
             run_result = client.run(payload)
             image_url = run_result.get("sample")
             if not image_url:
