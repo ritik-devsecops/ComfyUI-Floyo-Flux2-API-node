@@ -26,9 +26,11 @@ Repo layout (mirrors Floyo Seed API style):
    ```ini
    [API]
    BFL_API_KEY = <your_real_key>
+   BFL_BASE_URL = https://api.bfl.ai/v1/flux-2-pro
    ```
    ```bash
    export BFL_API_KEY=<your_real_key>
+   export BFL_BASE_URL=https://api.bfl.ai/v1/flux-2-pro
    ```
 4. Restart ComfyUI.
 

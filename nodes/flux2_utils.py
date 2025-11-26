@@ -18,17 +18,17 @@ class Flux2APIError(Exception):
 class Flux2API:
     """Minimal client for the Black Forest Labs FLUX.2 [pro] endpoint."""
 
-    BASE_URL = "https://api.bfl.ai/v1/flux-2-pro"
-
     def __init__(self, timeout: int = 600, poll_interval: float = 1.0):
         self.timeout = timeout
         self.poll_interval = poll_interval
 
-        api_key = Flux2Config().get_key()
+        cfg = Flux2Config()
+        api_key = cfg.get_key()
         if not api_key:
             raise Flux2APIError(
                 "BFL_API_KEY is not set. Define it in config.ini or export BFL_API_KEY before running ComfyUI."
             )
+        self.base_url = cfg.get_base_url()
 
         self.headers = {
             "accept": "application/json",
@@ -51,7 +51,7 @@ class Flux2API:
     def submit_request(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Submit a generation/editing request and return the raw API response."""
         body = self._strip_empty(payload)
-        response = requests.post(self.BASE_URL, headers=self.headers, json=body, timeout=30)
+        response = requests.post(self.base_url, headers=self.headers, json=body, timeout=30)
         response.raise_for_status()
 
         data = response.json()
