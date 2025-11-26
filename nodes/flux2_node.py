@@ -1,9 +1,9 @@
-from typing import List
+from typing import List, Optional
 
 from .flux2_utils import Flux2API, merge_reference_images
 
 
-def _validate_resolution(width: int, height: int) -> str | None:
+def _validate_resolution(width: int, height: int) -> Optional[str]:
     """Validate resolution constraints for FLUX.2."""
     for dim_name, dim in (("width", width), ("height", height)):
         if dim <= 0:
