@@ -40,6 +40,8 @@ class Flux2FlexTextToImage:
                 "steps": ("INT", {"default": 50, "min": 1, "max": 50, "step": 1, "tooltip": "Inference steps (1-50)."}),
             },
             "optional": {
+                "guidance": ("FLOAT", {"default": 4.5, "min": 1.5, "max": 10.0, "step": 0.1, "tooltip": "Prompt adherence (1.5-10)."}),
+                "steps": ("INT", {"default": 50, "min": 1, "max": 50, "step": 1, "tooltip": "Inference steps (1-50)."}),
                 "seed": ("INT", {"default": -1, "min": -1, "max": 0xFFFFFFFF, "tooltip": "-1 = random. Any other integer is reproducible."}),
                 "safety_tolerance": ("INT", {"default": 2, "min": 0, "max": 6, "tooltip": "Moderation level 0 (strict) to 6 (permissive)."}),
                 "output_format": (["jpeg", "png"], {"default": "jpeg", "tooltip": "Output format."}),
@@ -119,11 +121,11 @@ class Flux2FlexImageEdit:
                 "input_image_10": ("IMAGE", {"tooltip": "Optional reference image #10."}),
                 "width": ("INT", {"default": 1024, "min": 0, "max": 2048, "step": 16, "tooltip": "Override width (0 = keep). Multiple of 16."}),
                 "height": ("INT", {"default": 1024, "min": 0, "max": 2048, "step": 16, "tooltip": "Override height (0 = keep). Multiple of 16."}),
+                "guidance": ("FLOAT", {"default": 4.5, "min": 1.5, "max": 10.0, "step": 0.1, "tooltip": "Prompt adherence (1.5-10)."}),
+                "steps": ("INT", {"default": 50, "min": 1, "max": 50, "step": 1, "tooltip": "Inference steps (1-50)."}),
                 "seed": ("INT", {"default": -1, "min": -1, "max": 0xFFFFFFFF, "tooltip": "-1 = random. Any other integer is reproducible."}),
                 "safety_tolerance": ("INT", {"default": 2, "min": 0, "max": 6, "tooltip": "Moderation level 0 (strict) to 6 (permissive)."}),
                 "output_format": (["jpeg", "png"], {"default": "jpeg", "tooltip": "Output format."}),
-                "guidance": ("FLOAT", {"default": 4.5, "min": 1.5, "max": 10.0, "step": 0.1, "tooltip": "Prompt adherence (1.5-10)."}),
-                "steps": ("INT", {"default": 50, "min": 1, "max": 50, "step": 1, "tooltip": "Inference steps (1-50)."}),
             },
         }
 
@@ -222,6 +224,6 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "Flux2FlexTextToImage": "FLUX.2-Flex Text-to-Image",
-    "Flux2FlexImageEdit": "FLUX.2-Flex Image Edit",
+    "Flux2FlexTextToImage": "Floyo FLUX.2 Flex Text-to-Image",
+    "Flux2FlexImageEdit": "Floyo FLUX.2 Flex Image Edit",
 }
