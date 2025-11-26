@@ -39,8 +39,8 @@ Repo layout (mirrors Floyo Seed API style):
 - **Output:** `image` (IMAGE tensor ready for Save Image)
 
 ### FLUX.2 [pro] Image Edit (`Flux2ProImageEdit`)
-- **Inputs (required):** `prompt`, `input_image` (IMAGE tensor) or `input_image_url` (URL). If both are set, URL wins.
-- **Inputs (optional):** `input_image_2` … `input_image_8` (IMAGE tensors) and matching `input_image_2_url` … `input_image_8_url`. URLs win over tensors. Keep total refs <= 8. `width`, `height` (0 = match input), `seed` (`-1` = random), `safety_tolerance`, `output_format`
+- **Inputs (required):** `prompt`, `input_image` (IMAGE tensor)
+- **Inputs (optional):** `input_image_2` … `input_image_8` (IMAGE tensors, keep total refs <= 8). `width`, `height` (0 = match input), `seed` (`-1` = random), `safety_tolerance`, `output_format`
 - **Output:** `image` (IMAGE tensor ready for Save Image)
 
 ## Usage Notes
