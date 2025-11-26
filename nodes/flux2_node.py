@@ -4,6 +4,7 @@ from .flux2_utils import (
     Flux2API,
     download_image_to_tensor,
     image_tensor_to_base64,
+    merge_reference_images,
 )
 from .flux2_utils import _blank_image_tensor as _blank_image
 
