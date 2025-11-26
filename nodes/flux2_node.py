@@ -26,14 +26,14 @@ class Flux2ProTextToImage:
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "prompt": ("STRING", {"multiline": True, "default": "", "tooltip": "Describe what to generate. Supports long prompts (up to ~32k tokens per API docs)."}),
-                "width": ("INT", {"default": 1024, "min": 64, "max": 2048, "step": 16, "tooltip": "Output width in pixels. Must be a multiple of 16. Range: 64-2048 (max ~4MP)."}),
-                "height": ("INT", {"default": 1024, "min": 64, "max": 2048, "step": 16, "tooltip": "Output height in pixels. Must be a multiple of 16. Range: 64-2048 (max ~4MP)."}),
+                "prompt": ("STRING", {"multiline": True, "default": "", "tooltip": "Describe what to generate."}),
+                "width": ("INT", {"default": 1024, "min": 64, "max": 2048, "step": 16, "tooltip": "Output width (multiple of 16, 64-2048)."}),
+                "height": ("INT", {"default": 1024, "min": 64, "max": 2048, "step": 16, "tooltip": "Output height (multiple of 16, 64-2048)."}),
             },
             "optional": {
-                "seed": ("INT", {"default": -1, "min": -1, "max": 0xFFFFFFFF, "tooltip": "-1 = random. Any other integer gives reproducible results."}),
-                "safety_tolerance": ("INT", {"default": 2, "min": 0, "max": 6, "tooltip": "Moderation level. 0 = strict, 6 = most permissive (per BFL docs)."}),
-                "output_format": (["jpeg", "png"], {"default": "jpeg", "tooltip": "Output format for the returned image URL."}),
+                "seed": ("INT", {"default": -1, "min": -1, "max": 0xFFFFFFFF, "tooltip": "-1 = random. Any other integer is reproducible."}),
+                "safety_tolerance": ("INT", {"default": 2, "min": 0, "max": 6, "tooltip": "Moderation level 0 (strict) to 6 (permissive)."}),
+                "output_format": (["jpeg", "png"], {"default": "jpeg", "tooltip": "Output format."}),
             },
         }
 
@@ -86,15 +86,15 @@ class Flux2ProImageEdit:
     @classmethod
     def INPUT_TYPES(cls):
         base_image_inputs = {
-            "input_image": ("IMAGE", {"tooltip": "Base image tensor (connect from Load Image). Leave empty if using URL."}),
-            "input_image_url": ("STRING", {"default": "", "tooltip": "Base image URL (used if provided)."}),
+            "input_image": ("IMAGE", {"tooltip": "Base image (connect IMAGE)."}),
+            "input_image_url": ("STRING", {"default": "", "tooltip": "Base image URL (used if set)."}),
         }
 
         optional_refs = {}
         for idx in range(2, 9):
             optional_refs[f"input_image_{idx}"] = (
                 "IMAGE",
-                {"tooltip": f"Optional reference image tensor #{idx}. Leave empty if using URL fields."},
+                {"tooltip": f"Optional reference image #{idx}."},
             )
             optional_refs[f"input_image_{idx}_url"] = (
                 "STRING",
@@ -103,16 +103,16 @@ class Flux2ProImageEdit:
 
         return {
             "required": {
-                "prompt": ("STRING", {"multiline": True, "default": "", "tooltip": "Describe the edit you want (what to change/keep)."}),
+                "prompt": ("STRING", {"multiline": True, "default": "", "tooltip": "Describe the edit you want."}),
                 **base_image_inputs,
             },
             "optional": {
                 **optional_refs,
-                "width": ("INT", {"default": 0, "min": 0, "max": 2048, "step": 16, "tooltip": "Optional override. 0 = use input image width. Must be multiple of 16; range 64-2048 if set."}),
-                "height": ("INT", {"default": 0, "min": 0, "max": 2048, "step": 16, "tooltip": "Optional override. 0 = use input image height. Must be multiple of 16; range 64-2048 if set."}),
-                "seed": ("INT", {"default": -1, "min": -1, "max": 0xFFFFFFFF, "tooltip": "-1 = random. Any other integer gives reproducible results."}),
-                "safety_tolerance": ("INT", {"default": 2, "min": 0, "max": 6, "tooltip": "Moderation level. 0 = strict, 6 = most permissive (per BFL docs)."}),
-                "output_format": (["jpeg", "png"], {"default": "jpeg", "tooltip": "Output format for the returned image URL."}),
+                "width": ("INT", {"default": 0, "min": 0, "max": 2048, "step": 16, "tooltip": "Override width (0 = keep). Multiple of 16."}),
+                "height": ("INT", {"default": 0, "min": 0, "max": 2048, "step": 16, "tooltip": "Override height (0 = keep). Multiple of 16."}),
+                "seed": ("INT", {"default": -1, "min": -1, "max": 0xFFFFFFFF, "tooltip": "-1 = random. Any other integer is reproducible."}),
+                "safety_tolerance": ("INT", {"default": 2, "min": 0, "max": 6, "tooltip": "Moderation level 0 (strict) to 6 (permissive)."}),
+                "output_format": (["jpeg", "png"], {"default": "jpeg", "tooltip": "Output format."}),
             },
         }
 
