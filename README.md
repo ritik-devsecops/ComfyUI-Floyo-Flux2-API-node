@@ -27,10 +27,12 @@ Repo layout (mirrors Floyo Seed API style):
    [API]
    BFL_API_KEY = <your_real_key>
    BFL_BASE_URL = https://api.bfl.ai/v1/flux-2-pro
+   BFL_FLEX_BASE_URL = https://api.bfl.ai/v1/flux-2-flex
    ```
    ```bash
    export BFL_API_KEY=<your_real_key>
    export BFL_BASE_URL=https://api.bfl.ai/v1/flux-2-pro
+   export BFL_FLEX_BASE_URL=https://api.bfl.ai/v1/flux-2-flex
    ```
 4. Restart ComfyUI.
 
@@ -39,6 +41,21 @@ Repo layout (mirrors Floyo Seed API style):
 - **Inputs (required):** `prompt`, `width`, `height`
 - **Inputs (optional):** `seed` (`-1` = random), `safety_tolerance` (0-6), `output_format` (`jpeg`/`png`)
 - **Output:** `image` (IMAGE tensor ready for Save Image)
+
+### FLUX.2 [pro] Image Edit (`Flux2ProImageEdit`)
+- **Inputs (required):** `prompt`, `input_image` (IMAGE tensor)
+- **Inputs (optional):** `input_image_2` … `input_image_8` (IMAGE tensors, keep total refs <= 8). `width`, `height` (0 = match input), `seed` (`-1` = random), `safety_tolerance`, `output_format`
+- **Output:** `image` (IMAGE tensor ready for Save Image)
+
+### FLUX.2 [flex] Text-to-Image (`Flux2FlexTextToImage`)
+- **Inputs (required):** `prompt`, `width`, `height`, `guidance` (1.5–10), `steps` (1–50)
+- **Inputs (optional):** `seed` (`-1` = random), `safety_tolerance`, `output_format`
+- **Output:** `image` (IMAGE tensor)
+
+### FLUX.2 [flex] Image Edit (`Flux2FlexImageEdit`)
+- **Inputs (required):** `prompt`, `input_image` (IMAGE tensor)
+- **Inputs (optional):** `input_image_2` … `input_image_10` (IMAGE tensors, keep total refs <= 10), `width`, `height`, `seed`, `safety_tolerance`, `output_format`, `guidance`, `steps`
+- **Output:** `image` (IMAGE tensor)
 
 ### FLUX.2 [pro] Image Edit (`Flux2ProImageEdit`)
 - **Inputs (required):** `prompt`, `input_image` (IMAGE tensor)

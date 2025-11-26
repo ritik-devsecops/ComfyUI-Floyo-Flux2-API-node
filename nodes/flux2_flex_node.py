@@ -11,10 +11,10 @@ from .flux2_config import Flux2Config
 
 
 def _validate_resolution(width: int, height: int) -> Optional[str]:
-    """Validate resolution constraints for FLUX.2."""
+    """Validate resolution constraints for FLUX.2 flex."""
     for dim_name, dim in (("width", width), ("height", height)):
         if dim <= 0:
-            continue  # 0 means "use default/match input"
+            continue  # 0 means "use default/match input" for edits; for T2I user must set
         if dim % 16 != 0:
             return f"{dim_name} must be a multiple of 16 (got {dim})."
         if dim < 64 or dim > 2048:
@@ -22,11 +22,11 @@ def _validate_resolution(width: int, height: int) -> Optional[str]:
     return None
 
 
-class Flux2ProTextToImage:
+class Flux2FlexTextToImage:
     """
-    FLUX.2 [pro] text-to-image node for Floyo.
+    FLUX.2 [flex] text-to-image node for Floyo.
 
-    Accepts prompt + resolution and returns the signed image URL from the API.
+    Adds guidance/steps controls; outputs IMAGE tensor.
     """
 
     @classmethod
@@ -36,8 +36,12 @@ class Flux2ProTextToImage:
                 "prompt": ("STRING", {"multiline": True, "default": "", "tooltip": "Describe what to generate."}),
                 "width": ("INT", {"default": 1024, "min": 64, "max": 2048, "step": 16, "tooltip": "Output width (multiple of 16, 64-2048)."}),
                 "height": ("INT", {"default": 1024, "min": 64, "max": 2048, "step": 16, "tooltip": "Output height (multiple of 16, 64-2048)."}),
+                "guidance": ("FLOAT", {"default": 4.5, "min": 1.5, "max": 10.0, "step": 0.1, "tooltip": "Prompt adherence (1.5-10)."}),
+                "steps": ("INT", {"default": 50, "min": 1, "max": 50, "step": 1, "tooltip": "Inference steps (1-50)."}),
             },
             "optional": {
+                "guidance": ("FLOAT", {"default": 4.5, "min": 1.5, "max": 10.0, "step": 0.1, "tooltip": "Prompt adherence (1.5-10)."}),
+                "steps": ("INT", {"default": 50, "min": 1, "max": 50, "step": 1, "tooltip": "Inference steps (1-50)."}),
                 "seed": ("INT", {"default": -1, "min": -1, "max": 0xFFFFFFFF, "tooltip": "-1 = random. Any other integer is reproducible."}),
                 "safety_tolerance": ("INT", {"default": 2, "min": 0, "max": 6, "tooltip": "Moderation level 0 (strict) to 6 (permissive)."}),
                 "output_format": (["jpeg", "png"], {"default": "jpeg", "tooltip": "Output format."}),
@@ -47,13 +51,15 @@ class Flux2ProTextToImage:
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("image",)
     FUNCTION = "generate"
-    CATEGORY = "Floyo/Flux2 Pro"
+    CATEGORY = "Floyo/Flux2 Flex"
 
     def generate(
         self,
         prompt: str,
         width: int,
         height: int,
+        guidance: float,
+        steps: int,
         seed: int = -1,
         safety_tolerance: int = 2,
         output_format: str = "jpeg",
@@ -63,7 +69,8 @@ class Flux2ProTextToImage:
             if resolution_error:
                 return (f"Error: {resolution_error}",)
 
-            client = Flux2API(base_url=Flux2Config().get_base_url())
+            cfg = Flux2Config()
+            client = Flux2API(base_url=cfg.get_flex_base_url())
             payload = {
                 "prompt": prompt,
                 "width": width if width > 0 else None,
@@ -71,27 +78,28 @@ class Flux2ProTextToImage:
                 "seed": None if seed is None or seed < 0 else seed,
                 "safety_tolerance": safety_tolerance,
                 "output_format": output_format,
+                "guidance": guidance,
+                "steps": steps,
             }
 
             run_result = client.run(payload)
             image_url = run_result.get("sample")
             if not image_url:
-                print("Error: FLUX.2 response did not include an image URL.")
+                print("Error: FLUX.2 flex response did not include an image URL.")
                 return (_blank_image(),)
 
             image_tensor = download_image_to_tensor(image_url)
-
             return (image_tensor,)
-        except Exception as exc:  # noqa: BLE001 - ComfyUI expects string errors
-            print(f"Error generating with FLUX.2: {exc}")
+        except Exception as exc:  # noqa: BLE001
+            print(f"Error generating with FLUX.2 flex: {exc}")
             return (_blank_image(),)
 
 
-class Flux2ProImageEdit:
+class Flux2FlexImageEdit:
     """
-    FLUX.2 [pro] image editing node for Floyo.
+    FLUX.2 [flex] image editing node for Floyo.
 
-    Provide an input image URL plus optional reference images to guide edits.
+    Supports up to 10 references, guidance, steps; outputs IMAGE tensor.
     """
 
     @classmethod
@@ -109,8 +117,12 @@ class Flux2ProImageEdit:
                 "input_image_6": ("IMAGE", {"tooltip": "Optional reference image #6."}),
                 "input_image_7": ("IMAGE", {"tooltip": "Optional reference image #7."}),
                 "input_image_8": ("IMAGE", {"tooltip": "Optional reference image #8."}),
+                "input_image_9": ("IMAGE", {"tooltip": "Optional reference image #9."}),
+                "input_image_10": ("IMAGE", {"tooltip": "Optional reference image #10."}),
                 "width": ("INT", {"default": 1024, "min": 0, "max": 2048, "step": 16, "tooltip": "Override width (0 = keep). Multiple of 16."}),
                 "height": ("INT", {"default": 1024, "min": 0, "max": 2048, "step": 16, "tooltip": "Override height (0 = keep). Multiple of 16."}),
+                "guidance": ("FLOAT", {"default": 4.5, "min": 1.5, "max": 10.0, "step": 0.1, "tooltip": "Prompt adherence (1.5-10)."}),
+                "steps": ("INT", {"default": 50, "min": 1, "max": 50, "step": 1, "tooltip": "Inference steps (1-50)."}),
                 "seed": ("INT", {"default": -1, "min": -1, "max": 0xFFFFFFFF, "tooltip": "-1 = random. Any other integer is reproducible."}),
                 "safety_tolerance": ("INT", {"default": 2, "min": 0, "max": 6, "tooltip": "Moderation level 0 (strict) to 6 (permissive)."}),
                 "output_format": (["jpeg", "png"], {"default": "jpeg", "tooltip": "Output format."}),
@@ -120,7 +132,7 @@ class Flux2ProImageEdit:
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("image",)
     FUNCTION = "edit"
-    CATEGORY = "Floyo/Flux2 Pro"
+    CATEGORY = "Floyo/Flux2 Flex"
 
     def edit(
         self,
@@ -133,11 +145,15 @@ class Flux2ProImageEdit:
         input_image_6=None,
         input_image_7=None,
         input_image_8=None,
-        width: int = 0,
-        height: int = 0,
+        input_image_9=None,
+        input_image_10=None,
+        width: int = 1024,
+        height: int = 1024,
         seed: int = -1,
         safety_tolerance: int = 2,
         output_format: str = "jpeg",
+        guidance: float = 4.5,
+        steps: int = 50,
     ):
         try:
             resolution_error = _validate_resolution(width, height)
@@ -157,8 +173,6 @@ class Flux2ProImageEdit:
             if not base_image_value:
                 return ("Error: Provide a base image.",)
 
-            reference_payload = {"input_image": base_image_value}
-
             refs = [
                 input_image_2,
                 input_image_3,
@@ -167,13 +181,18 @@ class Flux2ProImageEdit:
                 input_image_6,
                 input_image_7,
                 input_image_8,
+                input_image_9,
+                input_image_10,
             ]
-
-            for idx, tensor_val in enumerate(refs, start=2):
+            ref_values: List[str] = []
+            for tensor_val in refs:
                 resolved = resolve_image(tensor_val)
-                if resolved:
-                    reference_payload[f"input_image_{idx}"] = resolved
+                ref_values.append(resolved if resolved else "")
 
+            reference_payload = merge_reference_images(base_image_value, ref_values)
+
+            cfg = Flux2Config()
+            client = Flux2API(base_url=cfg.get_flex_base_url())
             payload = {
                 "prompt": prompt,
                 **reference_payload,
@@ -182,29 +201,29 @@ class Flux2ProImageEdit:
                 "seed": None if seed is None or seed < 0 else seed,
                 "safety_tolerance": safety_tolerance,
                 "output_format": output_format,
+                "guidance": guidance,
+                "steps": steps,
             }
 
-            client = Flux2API(base_url=Flux2Config().get_base_url())
             run_result = client.run(payload)
             image_url = run_result.get("sample")
             if not image_url:
-                print("Error: FLUX.2 response did not include an image URL.")
+                print("Error: FLUX.2 flex response did not include an image URL.")
                 return (_blank_image(),)
 
             image_tensor = download_image_to_tensor(image_url)
-
             return (image_tensor,)
-        except Exception as exc:  # noqa: BLE001 - ComfyUI expects string errors
-            print(f"Error editing with FLUX.2: {exc}")
+        except Exception as exc:  # noqa: BLE001
+            print(f"Error editing with FLUX.2 flex: {exc}")
             return (_blank_image(),)
 
 
 NODE_CLASS_MAPPINGS = {
-    "Flux2ProTextToImage": Flux2ProTextToImage,
-    "Flux2ProImageEdit": Flux2ProImageEdit,
+    "Flux2FlexTextToImage": Flux2FlexTextToImage,
+    "Flux2FlexImageEdit": Flux2FlexImageEdit,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "Flux2ProTextToImage": "FLUX.2 [pro] Text-to-Image",
-    "Flux2ProImageEdit": "FLUX.2 [pro] Image Edit",
+    "Flux2FlexTextToImage": "Floyo FLUX.2 Flex Text-to-Image",
+    "Flux2FlexImageEdit": "Floyo FLUX.2 Flex Image Edit",
 }

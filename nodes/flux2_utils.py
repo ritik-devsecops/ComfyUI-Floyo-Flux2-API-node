@@ -16,9 +16,9 @@ class Flux2APIError(Exception):
 
 
 class Flux2API:
-    """Minimal client for the Black Forest Labs FLUX.2 [pro] endpoint."""
+    """Minimal client for the Black Forest Labs FLUX.2 endpoint."""
 
-    def __init__(self, timeout: int = 600, poll_interval: float = 1.0):
+    def __init__(self, base_url: str, timeout: int = 600, poll_interval: float = 1.0):
         self.timeout = timeout
         self.poll_interval = poll_interval
 
@@ -28,7 +28,7 @@ class Flux2API:
             raise Flux2APIError(
                 "BFL_API_KEY is not set. Define it in config.ini or export BFL_API_KEY before running ComfyUI."
             )
-        self.base_url = cfg.get_base_url()
+        self.base_url = base_url
 
         self.headers = {
             "accept": "application/json",
