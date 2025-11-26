@@ -224,6 +224,6 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "Flux2FlexTextToImage": "Floyo Flex Text-to-Image",
-    "Flux2FlexImageEdit": "Floyo Flex Image Edit",
+    "Flux2FlexTextToImage": "Floyo FLUX.2 Flex Text-to-Image",
+    "Flux2FlexImageEdit": "Floyo FLUX.2 Flex Image Edit",
 }
