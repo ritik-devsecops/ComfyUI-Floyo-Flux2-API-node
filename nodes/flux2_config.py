@@ -15,7 +15,8 @@ class Flux2Config:
 
     def _initialize(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        config_path = os.path.join(current_dir, "config.ini")
+        # Config lives at repo root (parent of nodes/)
+        config_path = os.path.join(os.path.dirname(current_dir), "config.ini")
 
         config = configparser.ConfigParser()
         config.read(config_path)

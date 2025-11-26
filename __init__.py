@@ -1,4 +1,4 @@
-from .flux2_node import (
+from .nodes.flux2_node import (  # noqa: F401
     Flux2ProImageEdit,
     Flux2ProTextToImage,
     NODE_CLASS_MAPPINGS,

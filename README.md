@@ -10,6 +10,12 @@ Custom ComfyUI node for Floyo that wraps the Black Forest Labs FLUX.2 **[pro]** 
 - Built-in polling with basic error handling and timeouts.
 
 ## Installation
+Repo layout (mirrors Floyo Seed API style):
+- `nodes/` → node code and helpers
+- `config.ini` → API key placeholder
+- `requirements.txt`
+- `README.md`, `__init__.py`
+
 1. Place this repository folder (e.g., `Flux2-Pro`) into `ComfyUI/custom_nodes/`.
 2. Install dependencies:
    ```bash
