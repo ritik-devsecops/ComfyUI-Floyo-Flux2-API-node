@@ -43,8 +43,8 @@ class Flux2ProTextToImage:
             },
         }
 
-    RETURN_TYPES = ("STRING", "IMAGE")
-    RETURN_NAMES = ("image_url", "image")
+    RETURN_TYPES = ("IMAGE",)
+    RETURN_NAMES = ("image",)
     FUNCTION = "generate"
     CATEGORY = "Floyo/Flux2 Pro"
 
@@ -75,13 +75,15 @@ class Flux2ProTextToImage:
             run_result = client.run(payload)
             image_url = run_result.get("sample")
             if not image_url:
-                return ("Error: FLUX.2 response did not include an image URL.", _blank_image())
+                print("Error: FLUX.2 response did not include an image URL.")
+                return (_blank_image(),)
 
             image_tensor = download_image_to_tensor(image_url)
 
-            return (image_url, image_tensor)
+            return (image_tensor,)
         except Exception as exc:  # noqa: BLE001 - ComfyUI expects string errors
-            return (f"Error generating with FLUX.2: {exc}", _blank_image())
+            print(f"Error generating with FLUX.2: {exc}")
+            return (_blank_image(),)
 
 
 class Flux2ProImageEdit:
@@ -124,8 +126,8 @@ class Flux2ProImageEdit:
             },
         }
 
-    RETURN_TYPES = ("STRING", "IMAGE")
-    RETURN_NAMES = ("image_url", "image")
+    RETURN_TYPES = ("IMAGE",)
+    RETURN_NAMES = ("image",)
     FUNCTION = "edit"
     CATEGORY = "Floyo/Flux2 Pro"
 
@@ -205,13 +207,15 @@ class Flux2ProImageEdit:
             run_result = client.run(payload)
             image_url = run_result.get("sample")
             if not image_url:
-                return ("Error: FLUX.2 response did not include an image URL.", _blank_image())
+                print("Error: FLUX.2 response did not include an image URL.")
+                return (_blank_image(),)
 
             image_tensor = download_image_to_tensor(image_url)
 
-            return (image_url, image_tensor)
+            return (image_tensor,)
         except Exception as exc:  # noqa: BLE001 - ComfyUI expects string errors
-            return (f"Error editing with FLUX.2: {exc}", _blank_image())
+            print(f"Error editing with FLUX.2: {exc}")
+            return (_blank_image(),)
 
 
 NODE_CLASS_MAPPINGS = {
