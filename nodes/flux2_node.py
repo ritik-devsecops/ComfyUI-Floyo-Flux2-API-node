@@ -40,16 +40,6 @@ class Flux2ProTextToImage:
                 "seed": ("INT", {"default": -1, "min": -1, "max": 0xFFFFFFFF, "tooltip": "-1 = random. Any other integer is reproducible."}),
                 "safety_tolerance": ("INT", {"default": 2, "min": 0, "max": 6, "tooltip": "Moderation level 0 (strict) to 6 (permissive)."}),
                 "output_format": (["jpeg", "png"], {"default": "jpeg", "tooltip": "Output format."}),
-                "webhook_url": ("STRING", {"default": "", "tooltip": "Optional webhook URL for async completion."}),
-                "webhook_secret": ("STRING", {"default": "", "tooltip": "Optional webhook secret for signature."}),
-                "input_image": ("IMAGE", {"tooltip": "Optional reference image #1."}),
-                "input_image_2": ("IMAGE", {"tooltip": "Optional reference image #2."}),
-                "input_image_3": ("IMAGE", {"tooltip": "Optional reference image #3."}),
-                "input_image_4": ("IMAGE", {"tooltip": "Optional reference image #4."}),
-                "input_image_5": ("IMAGE", {"tooltip": "Optional reference image #5."}),
-                "input_image_6": ("IMAGE", {"tooltip": "Optional reference image #6."}),
-                "input_image_7": ("IMAGE", {"tooltip": "Optional reference image #7."}),
-                "input_image_8": ("IMAGE", {"tooltip": "Optional reference image #8."}),
             },
         }
 
@@ -66,41 +56,11 @@ class Flux2ProTextToImage:
         seed: int = -1,
         safety_tolerance: int = 2,
         output_format: str = "jpeg",
-        webhook_url: str = "",
-        webhook_secret: str = "",
-        input_image=None,
-        input_image_2=None,
-        input_image_3=None,
-        input_image_4=None,
-        input_image_5=None,
-        input_image_6=None,
-        input_image_7=None,
-        input_image_8=None,
     ):
         try:
             resolution_error = _validate_resolution(width, height)
             if resolution_error:
                 return (f"Error: {resolution_error}",)
-
-            def resolve_image(tensor_val) -> Optional[str]:
-                if tensor_val is None:
-                    return None
-                try:
-                    return image_tensor_to_base64(tensor_val, format="PNG")
-                except Exception as exc:
-                    print(f"Warning: failed to convert reference image to base64: {exc}")
-                    return None
-
-            references: List[str] = []
-            refs = [input_image, input_image_2, input_image_3, input_image_4, input_image_5, input_image_6, input_image_7, input_image_8]
-            for tensor_val in refs:
-                resolved = resolve_image(tensor_val)
-                references.append(resolved if resolved else "")
-
-            ref_payload = merge_reference_images(
-                references[0],
-                references[1:],
-            )
 
             client = Flux2API()
             payload = {
@@ -110,9 +70,6 @@ class Flux2ProTextToImage:
                 "seed": None if seed is None or seed < 0 else seed,
                 "safety_tolerance": safety_tolerance,
                 "output_format": output_format,
-                "webhook_url": webhook_url or None,
-                "webhook_secret": webhook_secret or None,
-                **ref_payload,
             }
 
             run_result = client.run(payload)
@@ -151,8 +108,8 @@ class Flux2ProImageEdit:
                 "input_image_6": ("IMAGE", {"tooltip": "Optional reference image #6."}),
                 "input_image_7": ("IMAGE", {"tooltip": "Optional reference image #7."}),
                 "input_image_8": ("IMAGE", {"tooltip": "Optional reference image #8."}),
-                "width": ("INT", {"default": 0, "min": 0, "max": 2048, "step": 16, "tooltip": "Override width (0 = keep). Multiple of 16."}),
-                "height": ("INT", {"default": 0, "min": 0, "max": 2048, "step": 16, "tooltip": "Override height (0 = keep). Multiple of 16."}),
+                "width": ("INT", {"default": 1024, "min": 0, "max": 2048, "step": 16, "tooltip": "Override width (0 = keep). Multiple of 16."}),
+                "height": ("INT", {"default": 1024, "min": 0, "max": 2048, "step": 16, "tooltip": "Override height (0 = keep). Multiple of 16."}),
                 "seed": ("INT", {"default": -1, "min": -1, "max": 0xFFFFFFFF, "tooltip": "-1 = random. Any other integer is reproducible."}),
                 "safety_tolerance": ("INT", {"default": 2, "min": 0, "max": 6, "tooltip": "Moderation level 0 (strict) to 6 (permissive)."}),
                 "output_format": (["jpeg", "png"], {"default": "jpeg", "tooltip": "Output format."}),

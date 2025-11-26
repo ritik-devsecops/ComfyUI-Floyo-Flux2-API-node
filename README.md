@@ -37,7 +37,7 @@ Repo layout (mirrors Floyo Seed API style):
 ## Nodes and I/O
 ### FLUX.2 [pro] Text-to-Image (`Flux2ProTextToImage`)
 - **Inputs (required):** `prompt`, `width`, `height`
-- **Inputs (optional):** `seed` (`-1` = random), `safety_tolerance` (0-6), `output_format` (`jpeg`/`png`), `webhook_url`, `webhook_secret`, reference images `input_image` … `input_image_8` (IMAGE)
+- **Inputs (optional):** `seed` (`-1` = random), `safety_tolerance` (0-6), `output_format` (`jpeg`/`png`)
 - **Output:** `image` (IMAGE tensor ready for Save Image)
 
 ### FLUX.2 [pro] Image Edit (`Flux2ProImageEdit`)
