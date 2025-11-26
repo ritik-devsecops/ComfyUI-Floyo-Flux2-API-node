@@ -1,6 +1,12 @@
 from typing import List, Optional
 
-from .flux2_utils import Flux2API, image_tensor_to_base64, merge_reference_images
+from .flux2_utils import (
+    Flux2API,
+    download_image_to_tensor,
+    image_tensor_to_base64,
+    merge_reference_images,
+)
+from .flux2_utils import _blank_image_tensor as _blank_image
 
 
 def _validate_resolution(width: int, height: int) -> Optional[str]:
@@ -37,8 +43,8 @@ class Flux2ProTextToImage:
             },
         }
 
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("image_url",)
+    RETURN_TYPES = ("STRING", "IMAGE")
+    RETURN_NAMES = ("image_url", "image")
     FUNCTION = "generate"
     CATEGORY = "Floyo/Flux2 Pro"
 
@@ -69,11 +75,13 @@ class Flux2ProTextToImage:
             run_result = client.run(payload)
             image_url = run_result.get("sample")
             if not image_url:
-                return ("Error: FLUX.2 response did not include an image URL.",)
+                return ("Error: FLUX.2 response did not include an image URL.", _blank_image())
 
-            return (image_url,)
+            image_tensor = download_image_to_tensor(image_url)
+
+            return (image_url, image_tensor)
         except Exception as exc:  # noqa: BLE001 - ComfyUI expects string errors
-            return (f"Error generating with FLUX.2: {exc}",)
+            return (f"Error generating with FLUX.2: {exc}", _blank_image())
 
 
 class Flux2ProImageEdit:
@@ -116,8 +124,8 @@ class Flux2ProImageEdit:
             },
         }
 
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("image_url",)
+    RETURN_TYPES = ("STRING", "IMAGE")
+    RETURN_NAMES = ("image_url", "image")
     FUNCTION = "edit"
     CATEGORY = "Floyo/Flux2 Pro"
 
@@ -197,11 +205,13 @@ class Flux2ProImageEdit:
             run_result = client.run(payload)
             image_url = run_result.get("sample")
             if not image_url:
-                return ("Error: FLUX.2 response did not include an image URL.",)
+                return ("Error: FLUX.2 response did not include an image URL.", _blank_image())
 
-            return (image_url,)
+            image_tensor = download_image_to_tensor(image_url)
+
+            return (image_url, image_tensor)
         except Exception as exc:  # noqa: BLE001 - ComfyUI expects string errors
-            return (f"Error editing with FLUX.2: {exc}",)
+            return (f"Error editing with FLUX.2: {exc}", _blank_image())
 
 
 NODE_CLASS_MAPPINGS = {

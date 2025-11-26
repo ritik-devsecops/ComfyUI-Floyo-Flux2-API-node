@@ -169,3 +169,30 @@ def image_tensor_to_base64(image: torch.Tensor, format: str = "PNG") -> str:
     pil_image.save(buffer, format=format.upper(), **save_params)
     encoded = base64.b64encode(buffer.getvalue()).decode("utf-8")
     return encoded
+
+
+def _blank_image_tensor(width: int = 512, height: int = 512) -> torch.Tensor:
+    """Create a blank black image tensor for fallback."""
+    blank = np.zeros((height, width, 3), dtype=np.uint8)
+    return torch.from_numpy(blank.astype(np.float32) / 255.0)[None, ...]
+
+
+def download_image_to_tensor(url: str) -> torch.Tensor:
+    """
+    Download an image from URL and convert it to a ComfyUI-style tensor.
+
+    Returns a 4D tensor (1, H, W, C) with float values in [0,1].
+    """
+    if not url:
+        return _blank_image_tensor()
+
+    try:
+        response = requests.get(url, timeout=30)
+        response.raise_for_status()
+        img = Image.open(io.BytesIO(response.content)).convert("RGB")
+        img_np = np.array(img).astype(np.float32) / 255.0
+        img_tensor = torch.from_numpy(img_np)[None, ...]
+        return img_tensor
+    except Exception as exc:
+        print(f"[Flux2] Failed to download image from {url}: {exc}")
+        return _blank_image_tensor()
